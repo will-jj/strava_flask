@@ -31,35 +31,43 @@ def load_user(id):
 
 @app.route('/simple.png')
 def simple():
-    import datetime
-    try:
-        from StringIO import StringIO
-    except ImportError:
-        from io import BytesIO
-    import random
 
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.figure import Figure
-    from matplotlib.dates import DateFormatter
+    if current_user.is_authenticated:
+        import datetime
+        try:
+            from StringIO import StringIO
+        except ImportError:
+            from io import BytesIO
+        import random
+        import matplotlib.pyplot as plt
 
-    fig=Figure()
-    ax=fig.add_subplot(111)
-    x=[]
-    y=[]
-    now=datetime.datetime.now()
-    delta=datetime.timedelta(days=1)
-    for i in range(10):
-        x.append(now)
-        now+=delta
-        y.append(random.randint(0, 1000))
-    ax.plot_date(x, y, '-')
-    ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-    fig.autofmt_xdate()
-    canvas=FigureCanvas(fig)
-    png_output = BytesIO()
-    canvas.print_png(png_output)
-    response=make_response(png_output.getvalue())
-    response.headers['Content-Type'] = 'image/png'
+        from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+        from matplotlib.figure import Figure
+        from matplotlib.dates import DateFormatter
+        client = stravalib.client.Client()
+        client.access_token = current_user.access_token
+        athlete = client.get_athlete()
+        # TODO : Make this better
+        for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
+            latest_ride = activity
+
+        types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
+        streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
+        y = streams['altitude'].data
+        x = streams['distance'].data
+        fig=Figure()
+        ax=fig.add_subplot(111)
+        ax.plot(x,y)
+        ax.set_title('Keri\'s last ride')
+        ax.set_xlabel('Distance [m]')
+        ax.set_ylabel('Altitude [m]')
+        canvas=FigureCanvas(fig)
+        png_output = BytesIO()
+        canvas.print_png(png_output)
+        response=make_response(png_output.getvalue())
+        response.headers['Content-Type'] = 'image/png'
+    else:
+        response = 'error'
     return response
 
 @app.route('/')
