@@ -54,6 +54,8 @@ docs/_build/
 target/
 
 # application files
+*.ipynb
+*.p
 venv*
 *.sqlite
 .*
