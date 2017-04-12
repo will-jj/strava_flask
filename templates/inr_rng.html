@@ -4,13 +4,11 @@
     </head>
     <body>
         <h1>OAuth Demo</h1>
-        {% for message in get_flashed_messages() %}
-            <p><b>Error</b>: {{ message }}</p>
-        {% endfor %}
         {% if current_user.is_authenticated %}
-            <h2>Hi, {{ current_user.nickname}}!</h2>
-            <h1><a href="{{ url_for('inr_ring') }}">Go deeper</a></h1>
-            <p><a href="{{ url_for('logout') }}">Logout</a></p>
+
+            <h2>{{ string_variable }}</h2>
+            <img src='\simple.png' alt="Meme">
+
         {% else %}
             <h2>I don't know you!</h2>
 

@@ -88,19 +88,19 @@ class StravaSignIn(OAuthSignIn):
     def callback(self):
         if 'code' not in request.args:
             return None, None, None
-        print('IM HERE!!!')
+
         oauth_session = self.service.get_auth_session(
             data={'code': request.args['code'],
                   'grant_type': 'authorization_code',
                   'redirect_uri': self.get_callback_url()},
-            params={'format': 'json'},
+            # params={'format': 'json'},
             decoder=json.loads
 
         )
-
+        access_token = oauth_session.access_token
         me = oauth_session.get('athlete?').json()
         print(me)
-        access_token = oauth_session.get('access_token?').json()
+        print(access_token)
         name = me.get('firstname')
         email = me.get('email')
         imurl = me.get('profile')
@@ -108,7 +108,8 @@ class StravaSignIn(OAuthSignIn):
             'strava$' + str(me['id']),
             name,
             email,
-            imurl
+            imurl,
+            access_token
         )
 
 class TwitterSignIn(OAuthSignIn):
