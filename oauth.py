@@ -1,6 +1,6 @@
 from rauth import OAuth1Service, OAuth2Service
 from flask import current_app, url_for, request, redirect, session
-
+import json
 
 class OAuthSignIn(object):
     providers = None
@@ -66,7 +66,50 @@ class FacebookSignIn(OAuthSignIn):
                                             # is used instead
             me.get('email')
         )
+class StravaSignIn(OAuthSignIn):
+    def __init__(self):
+        super(StravaSignIn, self).__init__('strava')
+        self.service = OAuth2Service(
+            name='strava',
+            client_id=self.consumer_id,
+            client_secret=self.consumer_secret,
+            authorize_url='https://www.strava.com/oauth/authorize',
+            access_token_url='https://www.strava.com/oauth/token',
+            base_url='https://www.strava.com/api/v3/',
+        )
 
+    def authorize(self):
+        return redirect(self.service.get_authorize_url(
+            scope='view_private',
+            response_type='code',
+            redirect_uri=self.get_callback_url())
+        )
+
+    def callback(self):
+        if 'code' not in request.args:
+            return None, None, None
+        print('IM HERE!!!')
+        oauth_session = self.service.get_auth_session(
+            data={'code': request.args['code'],
+                  'grant_type': 'authorization_code',
+                  'redirect_uri': self.get_callback_url()},
+            params={'format': 'json'},
+            decoder=json.loads
+
+        )
+
+        me = oauth_session.get('athlete?').json()
+        print(me)
+        access_token = oauth_session.get('access_token?').json()
+        name = me.get('firstname')
+        email = me.get('email')
+        imurl = me.get('profile')
+        return (
+            'strava$' + str(me['id']),
+            name,
+            email,
+            imurl
+        )
 
 class TwitterSignIn(OAuthSignIn):
     def __init__(self):
