@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, flash, make_response
+from flask import Flask, redirect, url_for, render_template, flash, make_response, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user,\
     current_user
@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'top secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['OAUTH_CREDENTIALS'] = pickle.load(open('credentials.p', 'rb'))
-
+app.altitude_plot = None
 db = SQLAlchemy(app)
 lm = LoginManager(app)
 lm.login_view = 'index'
@@ -30,8 +30,9 @@ def load_user(id):
     return User.query.get(int(id))
 
 @app.route('/simple.png')
+def getplot():
+    return app.altitude_plot
 def simple():
-
     if current_user.is_authenticated:
         import datetime
         try:
@@ -65,7 +66,10 @@ def simple():
         png_output = BytesIO()
         canvas.print_png(png_output)
         response=make_response(png_output.getvalue())
+
         response.headers['Content-Type'] = 'image/png'
+        return response
+
     else:
         response = 'error'
     return response
@@ -76,12 +80,15 @@ def index():
 
 @app.route('/inr_ring')
 def inr_ring():
-    client = stravalib.Client()
-    client.access_token = current_user.access_token
-    athlete = client.get_athlete()
-    message = 'For {id}, I now have an access token {token}'.format(id=athlete.firstname, token=current_user.access_token)
-
-    return render_template('inr_rng.html', string_variable=message)
+    if current_user.is_authenticated:
+        client = stravalib.Client()
+        client.access_token = current_user.access_token
+        athlete = client.get_athlete()
+        message = 'For {id}, I now have an access token {token}'.format(id=athlete.firstname, token=current_user.access_token)
+        return render_template('inr_rng.html', string_variable=message)
+    else:
+        # abort(404)
+        return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
