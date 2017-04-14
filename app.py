@@ -56,38 +56,11 @@ def getplot():
 @celery.task()
 def simple(userkey):
     current_task.update_state(state='PROGRESS', meta={'current':0.1})
-    """
-    client = stravalib.client.Client()
-
-    client.access_token = 'notgonnaleavethisinagain'
-    athlete = client.get_athlete()
-    # TODO : Make this better
-    for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
-        latest_ride = activity
-
-    types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
-    streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
-    y = streams['altitude'].data
-    x = streams['distance'].data
-    fig=Figure()
-    ax=fig.add_subplot(111)
-    ax.plot(x,y)
-    ax.set_title('Keri\'s last ride')
-    ax.set_xlabel('Distance [m]')
-    ax.set_ylabel('Altitude [m]')
-    canvas=FigureCanvas(fig)
-    png_output = BytesIO()
-    
-    out = png_output.getvalue()
-    """
-    current_task.update_state(state='PROGRESS', meta={'current':0.1})
-    time.sleep(2)
     current_task.update_state(state='PROGRESS', meta={'current':0.3})
     fig=Figure()
     ax=fig.add_subplot(111)
     client = stravalib.client.Client()
-
-    client.access_token = 'notgonnaleavethisinagain'
+    client.access_token = userkey
     athlete = client.get_athlete()
     # TODO : Make this better
     for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
@@ -131,7 +104,6 @@ def result():
     if jobid:
         job = AsyncResult(jobid, app=celery)
         png_output = job.get()
-        print(png_output)
         response = make_response(png_output)
         response.headers['Content-Type'] = 'image/png'
         return response
@@ -145,54 +117,8 @@ def index():
 @app.route('/inr_ring')
 def inr_ring():
     if current_user.is_authenticated:
-        job = simple.delay()
-        return render_template_string('''\
-    <style>
-    #prog {
-    width: 400px;
-    border: 1px solid red;
-    height: 20px;
-    }
-    #bar {
-    width: 0px;
-    background-color: blue;
-    height: 20px;
-    }
-    </style>
-    <h3>Awesome Asynchronous Image Generation</h3>
-    <div id="imgpl">Image not ready. Please wait.</div>
-    <div id="wrapper"><div id="prog"><div id="bar"></div></div></div>
-    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script>
-    function poll() {
-        $.ajax("{{url_for('.progress', jobid=JOBID)}}", {
-            dataType: "json"
-            , success: function(resp) {
-                $("#bar").css({width: $("#prog").width() * resp.progress});
-                if(resp.progress >= 0.99) {
-                    $("#wrapper").html('');
-                    $("#imgpl").html('<img src="result.png?jobid={{JOBID}}">');
-    
-                    
-                    return;
-                } else {
-                    setTimeout(poll, 500.0);
-                }
-    
-            }
-        });
-    
-    }
-    
-    $(function() {
-        var JOBID = "{{ JOBID }}";
-        poll();
-    
-    });
-    </script>
-    ''', JOBID=job.id)
-
-        
+        job = simple.delay(current_user.access_token)
+        return render_template('TIM_PLATE', JOBID=job.id)
     else:
         # abort(404)
         return redirect(url_for('index'))
