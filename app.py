@@ -1,20 +1,40 @@
-from flask import Flask, redirect, url_for, render_template, flash, make_response, abort
+from flask import Flask, redirect, url_for, render_template, flash, make_response, abort,request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user,\
     current_user
+from flask import render_template_string
 from oauth import OAuthSignIn
 import pickle
 import stravalib
-
+import os
+import uuid
+import random
+import string
+import time
+import json
+import datetime
+from io import BytesIO
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.dates import DateFormatter
+from celery import Celery, current_task
+from celery.result import AsyncResult
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'top secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['OAUTH_CREDENTIALS'] = pickle.load(open('credentials.p', 'rb'))
 app.altitude_plot = None
+celery = Celery(app.name,
+        backend='redis://localhost:6379/0',
+        broker='amqp://localhost')
+celery.conf.accept_content = ['json', 'msgpack']
+celery.conf.result_serializer = 'msgpack'
+
 db = SQLAlchemy(app)
 lm = LoginManager(app)
 lm.login_view = 'index'
 
+app.user_token = 'None'
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -32,47 +52,91 @@ def load_user(id):
 @app.route('/simple.png')
 def getplot():
     return app.altitude_plot
-def simple():
-    if current_user.is_authenticated:
-        import datetime
-        try:
-            from StringIO import StringIO
-        except ImportError:
-            from io import BytesIO
-        import random
-        import matplotlib.pyplot as plt
 
-        from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-        from matplotlib.figure import Figure
-        from matplotlib.dates import DateFormatter
-        client = stravalib.client.Client()
-        client.access_token = current_user.access_token
-        athlete = client.get_athlete()
-        # TODO : Make this better
-        for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
-            latest_ride = activity
+@celery.task()
+def simple(userkey):
+    current_task.update_state(state='PROGRESS', meta={'current':0.1})
+    """
+    client = stravalib.client.Client()
 
-        types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
-        streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
-        y = streams['altitude'].data
-        x = streams['distance'].data
-        fig=Figure()
-        ax=fig.add_subplot(111)
-        ax.plot(x,y)
-        ax.set_title('Keri\'s last ride')
-        ax.set_xlabel('Distance [m]')
-        ax.set_ylabel('Altitude [m]')
-        canvas=FigureCanvas(fig)
-        png_output = BytesIO()
-        canvas.print_png(png_output)
-        response=make_response(png_output.getvalue())
+    client.access_token = 'notgonnaleavethisinagain'
+    athlete = client.get_athlete()
+    # TODO : Make this better
+    for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
+        latest_ride = activity
 
+    types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
+    streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
+    y = streams['altitude'].data
+    x = streams['distance'].data
+    fig=Figure()
+    ax=fig.add_subplot(111)
+    ax.plot(x,y)
+    ax.set_title('Keri\'s last ride')
+    ax.set_xlabel('Distance [m]')
+    ax.set_ylabel('Altitude [m]')
+    canvas=FigureCanvas(fig)
+    png_output = BytesIO()
+    
+    out = png_output.getvalue()
+    """
+    current_task.update_state(state='PROGRESS', meta={'current':0.1})
+    time.sleep(2)
+    current_task.update_state(state='PROGRESS', meta={'current':0.3})
+    fig=Figure()
+    ax=fig.add_subplot(111)
+    client = stravalib.client.Client()
+
+    client.access_token = 'notgonnaleavethisinagain'
+    athlete = client.get_athlete()
+    # TODO : Make this better
+    for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
+        latest_ride = activity
+
+    types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
+    streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
+    y = streams['altitude'].data
+    x = streams['distance'].data
+    ax.plot(x, y, '-')
+    #ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+    #fig.autofmt_xdate()
+    canvas=FigureCanvas(fig)
+    current_task.update_state(state='PROGRESS', meta={'current':0.8})
+    png_output = BytesIO()
+    canvas.print_png(png_output)
+    out = png_output.getvalue()
+    return out
+
+
+@app.route('/progress')
+def progress():
+    jobid = request.values.get('jobid')
+    if jobid:
+        job = AsyncResult(jobid, app=celery)
+        if job.state == 'PROGRESS':
+            return json.dumps(dict(
+                state = job.state,
+                progress = job.result['current'],
+            ))
+        elif job.state == 'SUCCESS':
+            return json.dumps(dict(
+                state = job.state,
+                progress = 1.0,
+            ))
+    return '{}'
+
+@app.route('/result.png')
+def result():
+    jobid = request.values.get('jobid')
+    if jobid:
+        job = AsyncResult(jobid, app=celery)
+        png_output = job.get()
+        print(png_output)
+        response = make_response(png_output)
         response.headers['Content-Type'] = 'image/png'
         return response
-
     else:
-        response = 'error'
-    return response
+        return 404
 
 @app.route('/')
 def index():
@@ -81,11 +145,54 @@ def index():
 @app.route('/inr_ring')
 def inr_ring():
     if current_user.is_authenticated:
-        client = stravalib.Client()
-        client.access_token = current_user.access_token
-        athlete = client.get_athlete()
-        message = 'For {id}, I now have an access token {token}'.format(id=athlete.firstname, token=current_user.access_token)
-        return render_template('inr_rng.html', string_variable=message)
+        job = simple.delay()
+        return render_template_string('''\
+    <style>
+    #prog {
+    width: 400px;
+    border: 1px solid red;
+    height: 20px;
+    }
+    #bar {
+    width: 0px;
+    background-color: blue;
+    height: 20px;
+    }
+    </style>
+    <h3>Awesome Asynchronous Image Generation</h3>
+    <div id="imgpl">Image not ready. Please wait.</div>
+    <div id="wrapper"><div id="prog"><div id="bar"></div></div></div>
+    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script>
+    function poll() {
+        $.ajax("{{url_for('.progress', jobid=JOBID)}}", {
+            dataType: "json"
+            , success: function(resp) {
+                $("#bar").css({width: $("#prog").width() * resp.progress});
+                if(resp.progress >= 0.99) {
+                    $("#wrapper").html('');
+                    $("#imgpl").html('<img src="result.png?jobid={{JOBID}}">');
+    
+                    
+                    return;
+                } else {
+                    setTimeout(poll, 500.0);
+                }
+    
+            }
+        });
+    
+    }
+    
+    $(function() {
+        var JOBID = "{{ JOBID }}";
+        poll();
+    
+    });
+    </script>
+    ''', JOBID=job.id)
+
+        
     else:
         # abort(404)
         return redirect(url_for('index'))
@@ -110,6 +217,7 @@ def oauth_callback(provider):
         return redirect(url_for('index'))
     oauth = OAuthSignIn.get_provider(provider)
     social_id, username, email,imurl,access_token = oauth.callback()
+    app.user_token = access_token
     if social_id is None:
         flash('Authentication failed.')
         return redirect(url_for('index'))
