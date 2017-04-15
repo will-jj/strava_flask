@@ -5,62 +5,21 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user,\
 from flask import render_template_string
 from oauth import OAuthSignIn
 import pickle
-import stravalib
-import os
-import uuid
-import random
-import string
-import time
+
 import json
-import datetime
-from io import BytesIO
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.dates import DateFormatter
-from celery import Celery, current_task
-from celery.result import AsyncResult
+import tasks
 
-# Get backend info from environment variables
-REDIS_PORT = 6379  
-REDIS_DB = 0  
-REDIS_HOST = os.environ.get('REDIS_PORT_6379_TCP_ADDR', 'redis')
-REDIS_URL = 'redis://%s:%d/%d' % (REDIS_HOST, REDIS_PORT, REDIS_DB)
+APP = Flask(__name__)
+APP.config['SECRET_KEY'] = 'top secret!'
+APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+APP.config['OAUTH_CREDENTIALS'] = pickle.load(open('credentials.p', 'rb'))
+APP.altitude_plot = None
 
-# Get broker info from environment variables
-RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'rabbit')
-if RABBIT_HOSTNAME.startswith('tcp://'):  
-    RABBIT_HOSTNAME = RABBIT_HOSTNAME.split('//')[1]
-BROKER_URL = os.environ.get('BROKER_URL','')
-if not BROKER_URL:  
-    BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
-        user=os.environ.get('RABBIT_ENV_USER', 'admin'),
-        password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'mypass'),
-        hostname='rabbit',
-        vhost=os.environ.get('RABBIT_ENV_VHOST', ''))
-
-print(BROKER_URL)
-
-
-
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'top secret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-app.config['OAUTH_CREDENTIALS'] = pickle.load(open('credentials.p', 'rb'))
-app.altitude_plot = None
-
-celery = Celery(app.name,
-        backend=REDIS_URL,
-        broker=BROKER_URL)
-
-celery.conf.accept_content = ['json', 'msgpack']
-celery.conf.result_serializer = 'msgpack'
-
-db = SQLAlchemy(app)
-lm = LoginManager(app)
+db = SQLAlchemy(APP)
+lm = LoginManager(APP)
 lm.login_view = 'index'
 
-app.user_token = 'None'
+APP.user_token = 'None'
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -75,60 +34,35 @@ class User(UserMixin, db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
-@app.route('/simple.png')
-def getplot():
-    return app.altitude_plot
 
-@celery.task()
-def simple(userkey):
-    current_task.update_state(state='PROGRESS', meta={'current':0.1})
-    current_task.update_state(state='PROGRESS', meta={'current':0.3})
-    fig=Figure()
-    ax=fig.add_subplot(111)
-    client = stravalib.client.Client()
-    client.access_token = userkey
-    athlete = client.get_athlete()
-    # TODO : Make this better
-    for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
-        latest_ride = activity
-
-    types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
-    streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
-    y = streams['altitude'].data
-    x = streams['distance'].data
-    ax.plot(x, y, '-')
-    #ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-    #fig.autofmt_xdate()
-    canvas=FigureCanvas(fig)
-    current_task.update_state(state='PROGRESS', meta={'current':0.8})
-    png_output = BytesIO()
-    canvas.print_png(png_output)
-    out = png_output.getvalue()
-    return out
-
-
-@app.route('/progress')
+@APP.route('/progress')
 def progress():
+    '''
+    Get the progress of our task and return it using a JSON object
+    '''
     jobid = request.values.get('jobid')
     if jobid:
-        job = AsyncResult(jobid, app=celery)
+        job = tasks.get_job(jobid)
         if job.state == 'PROGRESS':
             return json.dumps(dict(
-                state = job.state,
-                progress = job.result['current'],
+                state=job.state,
+                progress=job.result['current'],
             ))
         elif job.state == 'SUCCESS':
             return json.dumps(dict(
-                state = job.state,
-                progress = 1.0,
+                state=job.state,
+                progress=1.0,
             ))
     return '{}'
 
-@app.route('/result.png')
+@APP.route('/result.png')
 def result():
+    '''
+    Pull our generated .png binary from redis and return it
+    '''
     jobid = request.values.get('jobid')
     if jobid:
-        job = AsyncResult(jobid, app=celery)
+        job = tasks.get_job(jobid)
         png_output = job.get()
         response = make_response(png_output)
         response.headers['Content-Type'] = 'image/png'
@@ -136,26 +70,27 @@ def result():
     else:
         return 404
 
-@app.route('/')
+
+@APP.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/inr_ring')
+@APP.route('/inr_ring')
 def inr_ring():
     if current_user.is_authenticated:
-        job = simple.delay(current_user.access_token)
+        job = tasks.simple.delay(current_user.access_token)
         return render_template('TIM_PLATE', JOBID=job.id)
     else:
         # abort(404)
         return redirect(url_for('index'))
 
-@app.route('/logout')
+@APP.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
 
 
-@app.route('/authorize/<provider>')
+@APP.route('/authorize/<provider>')
 def oauth_authorize(provider):
     if not current_user.is_anonymous:
         return redirect(url_for('index'))
@@ -163,13 +98,13 @@ def oauth_authorize(provider):
     return oauth.authorize()
 
 
-@app.route('/callback/<provider>')
+@APP.route('/callback/<provider>')
 def oauth_callback(provider):
     if not current_user.is_anonymous:
         return redirect(url_for('index'))
     oauth = OAuthSignIn.get_provider(provider)
     social_id, username, email,imurl,access_token = oauth.callback()
-    app.user_token = access_token
+    APP.user_token = access_token
     if social_id is None:
         flash('Authentication failed.')
         return redirect(url_for('index'))
@@ -184,4 +119,4 @@ def oauth_callback(provider):
 
 if __name__ == '__main__':
     db.create_all()
-    app.run(host='0.0.0.0')
+    APP.run(host='0.0.0.0')
