@@ -10,9 +10,8 @@ from celery.result import AsyncResult
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.dates import DateFormatter
-
 import stravalib
-
+import json
 REDIS_URL = 'redis://redis:6379/0'
 BROKER_URL = 'amqp://admin:mypass@rabbit//'
 
@@ -29,6 +28,13 @@ def get_job(job_id):
     The job ID is passed and the celery job is returned.
     '''
     return AsyncResult(job_id, app=CELERY)
+
+@CELERY.task()
+def simple_json_c():
+    x = [1,2,3,4,5]
+    y = [3,4,3,2,2]
+    jmeme = json.dumps(({'x': x, 'y': y}))
+    return jmeme
 
 @CELERY.task()
 def simple(userkey):
@@ -56,6 +62,8 @@ def simple(userkey):
     canvas.print_png(png_output)
     out = png_output.getvalue()
     return out
+
+
 
 @CELERY.task()
 def get_data_from_strava():
