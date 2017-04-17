@@ -66,6 +66,49 @@ def progress():
             ))
     return '{}'
 
+
+@APP.route('/start', methods=['POST'])
+def get_counts():
+    # get url
+    data = json.loads(request.data.decode())
+    url = data["url"]
+    job = tasks.celery_json_strava.delay(current_user.access_token)
+    # return created job id
+    return job.id
+
+@APP.route('/get_desired_data', methods=['GET', 'POST'])
+def get_desired_data():
+    errors = []
+    results = {}
+    if request.method == "POST":
+        # get text that the user has entered
+        try:
+            data = request.form['thedata']
+
+
+
+            results.append(
+                "You entered: {0}".format(data))
+        except:
+                errors.append("srs no data")
+
+    return render_template('get_desired_data.html', errors=errors, results=results)
+
+
+@APP.route('/results')
+def get_results():
+    jobid = request.args.get('jobid')
+    if current_user.is_authenticated:
+        if jobid:
+            job = tasks.get_job(jobid)
+            output = job.get()
+
+            return jsonify(output)
+        else:
+            return "No", 202
+    else:
+        return "Nay!", 404
+
 def simple_json_strava(userkey):
     client = stravalib.client.Client()
     client.access_token = userkey
@@ -85,6 +128,7 @@ def simple_json_strava(userkey):
     jmeme = json.dumps([{'key': 'Altitude', 'values': my_list}])
 
     return jmeme
+
 
 @APP.route('/result.png')
 def result():
@@ -144,6 +188,15 @@ def inr_ring():
     if current_user.is_authenticated:
         job = tasks.simple.delay(current_user.access_token)
         return render_template('TIM_PLATE', JOBID=job.id)
+    else:
+        # abort(404)
+        return redirect(url_for('index'))
+
+@APP.route('/testpage')
+def testpage():
+    if current_user.is_authenticated:
+        job = tasks.celery_json_strava.delay(current_user.access_token)
+        return render_template('testpage.html', JOBID=job.id)
     else:
         # abort(404)
         return redirect(url_for('index'))

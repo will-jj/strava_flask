@@ -37,6 +37,27 @@ def simple_json_c():
     return jmeme
 
 @CELERY.task()
+def celery_json_strava(userkey):
+    client = stravalib.client.Client()
+    client.access_token = userkey
+    athlete = client.get_athlete()
+    # TODO : Make this better
+    for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
+        latest_ride = activity
+
+    types = ['distance', 'time', 'latlng', 'altitude', 'heartrate', 'temp', ]
+    streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
+    y = streams['altitude'].data
+    x = streams['distance'].data
+    my_list = list()
+    for ii, data in enumerate(y):
+        my_list.append((x[ii],data))
+
+    jmeme = json.dumps([{'key': 'Altitude', 'values': my_list}])
+
+    return jmeme
+
+@CELERY.task()
 def simple(userkey):
     current_task.update_state(state='PROGRESS', meta={'current':0.1})
     current_task.update_state(state='PROGRESS', meta={'current':0.3})
