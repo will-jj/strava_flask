@@ -74,6 +74,14 @@ def get_counts():
     # return created job id
     return job.id
 
+@APP.route('/d3_test')
+def d3_test():
+    return render_template('d3_test.html')
+
+@APP.route('/topojson')
+def topojson():
+    return jsonify(pickle.load(open('topojson.p', 'rb')))
+
 
 @APP.route('/get_desired_data', methods=['GET', 'POST'])
 def get_desired_data():

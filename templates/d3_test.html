@@ -1,0 +1,147 @@
+<html>
+  <head>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="http://d3js.org/topojson.v1.min.js" charset="utf-8"></script>
+    <style>
+      body, html{
+        margin: 0;
+        background-color: #333;
+      }
+      my-map, loading-overlay{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: block;
+        overflow: hidden;
+      }
+      loading-overlay{
+        background-color: black;
+      }
+      loading-overlay text{
+        fill: white;
+        text-anchor: middle;
+        font-size: 12px;
+        font-family: helvetica;
+      }
+      loading-overlay rect{
+        fill: white;
+      }
+      my-map path{
+        fill: black;
+        stroke: black;
+      }
+    </style>
+  </head>
+  <body ng-app="app" ng-controller="MainCtrl">
+    <my-map loading="mapIsLoading"></my-map>
+    <loading-overlay ng-show="mapIsLoading"></loading-overlay>
+  </body>
+  <script>
+var app = angular.module('app', [])
+app.controller('MainCtrl', function($scope, $window){
+  angular.element($window).on('resize', function(){ $scope.$apply(); });
+});
+app.directive('loadingOverlay', function(){
+  function link(scope, el, attr){
+    el = el[0];
+    var w, h;
+    var len = 24;
+    var dur = 1000;
+    var offset = 45;
+    var bar_height = 5;
+    var svg = d3.select(el).append('svg');
+    var root = svg.append('g');
+    var g = root.append('g');
+
+    root.append('text').text('loading...').attr('y', 3);
+
+    var slices = g.selectAll('g.slice').data(d3.range(len))
+      .enter().append('g').attr('class', 'slice')
+        .attr('transform', function(d, i){
+          return 'rotate(' + (i / (len) * 360) + ')';
+        });
+    slices.append('rect')
+      .attr({width: 14, height: bar_height, y: - bar_height / 2, x: offset});
+
+    function loop(sel){
+      var dur = 4000;
+      sel.attr('transform', 'rotate(0)')
+        .transition().duration(dur).ease('linear')
+        .attr('transform', 'rotate(180)')
+        .transition().duration(dur).ease('linear')
+        .attr('transform', 'rotate(359)')
+        .each('end', function(){ d3.select(this).call(loop); });
+    }
+
+    scope.$watch('ngShow', function(show){
+      if(show){
+        // start the animation loop
+        g.call(loop);
+      }else{
+        // end the animation loop
+        g.transition().duration(0).each('end', null);
+      }
+    });
+
+    function resize(){
+      svg.attr({width: w, height: h});
+      // recent the visualization
+      root.attr('transform', 'translate(' + [ w / 2, h / 2] + ')')
+    }
+    scope.$watch(function(){
+      w = el.clientWidth;
+      h = el.clientHeight;
+      return w + h;
+    }, resize);
+  }
+  return {
+     link: link
+    , scope: { ngShow: '=' }
+    , restrict: 'E'
+  }
+})
+app.directive('myMap', function($timeout, $http){
+  function link(scope, el, attr){
+    el = el[0];
+    var svg = d3.select(el).append('svg');
+    var w, h;
+    var root = svg.append('g');
+    var projection = d3.geo.equirectangular().translate([0,0]).precision(.1);
+    var path = d3.geo.path().projection(projection);
+    var countries;
+
+    function resize(){
+      svg.attr({width: w, height: h});
+      var sw = 1 / (Math.PI * 2) * w;
+      var sh = 1 / Math.PI * h;
+      projection.scale(Math.max(sw, sh));
+      root.attr('transform', 'translate(' + [w / 2, h / 2] + ')');
+    }
+    scope.$watch(function(){
+      w = el.clientWidth;
+      h = el.clientHeight;
+      return w + h;
+    }, resize);
+
+    scope.loading = true;
+    // take longer than normal to load the map for the demo.
+    $timeout(function(){
+      $http.get('/topojson').then(function(res){
+        var world = res.data;
+        countries = root.selectAll('path')
+          .data(topojson.feature(world, world.objects.countries).features)
+          .enter().append('path')
+          .attr('d', path);
+        scope.loading = false;
+      }, function(err){ throw err });
+    }, 2000);
+  }
+  return {
+      link: link
+    , scope: { loading: '=' }
+    , restrict: 'E'
+  }
+})
+  </script>
+</html>
