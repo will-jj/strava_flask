@@ -45,18 +45,20 @@
             if(status === 202) {
               $log.log(data, status);
             } else if (status === 200){
-              $log.log(data);
+              //$log.log(data);
               $scope.loading = false;
               $scope.submitButtonText = "Submit";
-              $scope.a = JSON.stringify(data);
-              $scope.wordcounts = JSON.parse($scope.a);
+             // $scope.b= JSON.parse(data);
 
+
+              $scope.wordcounts = data;
+              $log.log($scope.wordcounts)
               $timeout.cancel(timeout);
               return false;
             }
-            // continue to call the poller() function every 300 ms
+            // continue to call the poller() function every 2 seconds
             // until the timeout is cancelled
-            timeout = $timeout(poller, 300);
+            timeout = $timeout(poller, 2000);
           }).
           error(function(error) {
             $log.log(error);
@@ -72,32 +74,6 @@
 
   }])
 
-  .directive('wordCountChart', ['$parse', function ($parse) {
-    return {
-      restrict: 'E',
-      replace: true,
-      template: '<div id="chart"></div>',
-      link: function (scope) {
-        scope.$watch('wordcounts', function() {
-          d3.select('#chart').selectAll('*').remove();
-          var data = scope.wordcounts;
-          for (var word in data) {
-            d3.select('#chart')
-              .append('div')
-              .selectAll('div')
-              .data(word[0])
-              .enter()
-              .append('div')
-              .style('width', function() {
-                return (data[word] * 20) + 'px';
-              })
-              .text(function(d){
-                return word;
-              });
-          }
-        }, true);
-      }
-     };
-  }]);
+
 
 }());

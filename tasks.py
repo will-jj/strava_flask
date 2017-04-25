@@ -66,6 +66,7 @@ def simple(userkey):
     client = stravalib.client.Client()
     client.access_token = userkey
     athlete = client.get_athlete()
+
     # TODO : Make this better
     for activity in client.get_activities(before="3000-01-01T00:00:00Z", limit=1):
         latest_ride = activity
@@ -75,6 +76,7 @@ def simple(userkey):
     y = streams['altitude'].data
     x = streams['distance'].data
     ax.plot(x, y, '-')
+    ax.set_title('{name} lives in {city}, {key}'.format(name=athlete.city,city=athlete.city,key=userkey))
     #ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
     #fig.autofmt_xdate()
     canvas=FigureCanvas(fig)

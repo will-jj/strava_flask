@@ -1,12 +1,10 @@
-from flask import Flask, redirect, url_for, render_template, flash, make_response, abort,request,jsonify
+from flask import Flask, redirect, url_for, render_template, flash, make_response, abort, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user,\
+from flask_login import LoginManager, UserMixin, login_user, logout_user, \
     current_user
-from flask import render_template_string
 from oauth import OAuthSignIn
 import pickle
 
-import json
 import tasks
 import numpy as np
 import stravalib
@@ -30,16 +28,16 @@ APP.user_token = 'None'
 def currency(value):
     return "${:,.2f}".format(value)
 
+
 APP.add_template_filter(currency)
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    social_id = db.Column(db.String(64), nullable=False, unique=True)
-    nickname = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(64), nullable=True)
-    imurl = db.Column(db.String(64), nullable=True)
     access_token = db.Column(db.String(64), nullable=True)
+
 
 @lm.user_loader
 def load_user(id):
@@ -76,6 +74,7 @@ def get_counts():
     # return created job id
     return job.id
 
+
 @APP.route('/get_desired_data', methods=['GET', 'POST'])
 def get_desired_data():
     errors = []
@@ -85,12 +84,10 @@ def get_desired_data():
         try:
             data = request.form['thedata']
 
-
-
             results.append(
                 "You entered: {0}".format(data))
         except:
-                errors.append("srs no data")
+            errors.append("srs no data")
 
     return render_template('get_desired_data.html', errors=errors, results=results)
 
@@ -103,11 +100,12 @@ def get_results():
             job = tasks.get_job(jobid)
             output = job.get()
 
-            return jsonify(output)
+            return (output)
         else:
             return "No", 202
     else:
         return "Nay!", 404
+
 
 def simple_json_strava(userkey):
     client = stravalib.client.Client()
@@ -123,7 +121,7 @@ def simple_json_strava(userkey):
     x = streams['distance'].data
     my_list = list()
     for ii, data in enumerate(y):
-        my_list.append((x[ii],data))
+        my_list.append((x[ii], data))
 
     jmeme = json.dumps([{'key': 'Altitude', 'values': my_list}])
 
@@ -145,38 +143,18 @@ def result():
     else:
         return 404
 
-def simple_json():
-    x = [1,2,3,4,5]
-    y = [3,4,3,2,2]
-
-
-
-    return jsonify(x=x,y=y)
-
-#@APP.route('/muhjson')
-def simple_json_2():
-    mytuples = [(1,2),(2,4),(4,6)]
-
-    jmeme = json.dumps([{'key': 'Altitude', 'values': mytuples}])
-    return jmeme#jsonify(key='Number', values=mytuples)
-
-@APP.route('/test')
-def test():
-
-    json_array = simple_json()
-    return json_array
-
 
 @APP.route('/test2')
 def test2():
     if current_user.is_authenticated:
 
         json_array = simple_json_strava(current_user.access_token)
-        #json_array = simple_json_2()
+        # json_array = simple_json_2()
 
         return render_template('strava_plot.html', test_data=json_array)
     else:
         return redirect(url_for('index'))
+
 
 @APP.route('/')
 def index():
@@ -192,14 +170,17 @@ def inr_ring():
         # abort(404)
         return redirect(url_for('index'))
 
-@APP.route('/testpage')
-def testpage():
+
+
+@APP.route('/key')
+def keypage():
     if current_user.is_authenticated:
-        job = tasks.celery_json_strava.delay(current_user.access_token)
-        return render_template('testpage.html', JOBID=job.id)
+
+        return render_template('keypage.html', key=current_user.access_token)
     else:
         # abort(404)
         return redirect(url_for('index'))
+
 
 @APP.route('/logout')
 def logout():
@@ -220,14 +201,14 @@ def oauth_callback(provider):
     if not current_user.is_anonymous:
         return redirect(url_for('index'))
     oauth = OAuthSignIn.get_provider(provider)
-    social_id, username, email,imurl,access_token = oauth.callback()
+    id, email, access_token = oauth.callback()
     APP.user_token = access_token
-    if social_id is None:
+    if id is None:
         flash('Authentication failed.')
         return redirect(url_for('index'))
-    user = User.query.filter_by(social_id=social_id).first()
+    user = User.query.filter_by(id=id).first()
     if not user:
-        user = User(social_id=social_id, nickname=username, email=email,imurl=imurl, access_token=access_token)
+        user = User(id=id, email=email, access_token=access_token)
         db.session.add(user)
         db.session.commit()
     login_user(user, True)
