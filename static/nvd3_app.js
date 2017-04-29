@@ -53,10 +53,20 @@ app.controller('MainCtrl', function($scope,$log,$http,$timeout) {
                     'text-align': 'justify',
                     'margin': '10px 13px 0px 7px'
                 }
-            }
-        };
+            },
+            zoom: {
+                    //NOTE: All attributes below are optional
+                    enabled: true,
+                    scaleExtent: [1, 10],
+                    useFixedDomain: true,
+                    useNiceScale: false,
+                    horizontalOff: false,
+                    verticalOff: false,
+                    unzoomEventType: 'dblclick.zoom'
+                }};
 
-        $scope.data = sinAndCos();
+        $scope.data = null;
+        $scope.loading = true;
 
         $scope.getResults = function() {
 
@@ -91,7 +101,8 @@ app.controller('MainCtrl', function($scope,$log,$http,$timeout) {
                     $log.log(data, status);
                 } else if (status === 200) {
                     //$log.log(data);
-                    $scope.loading = false;
+
+
                     $scope.submitButtonText = "Submit";
                     // $scope.b= JSON.parse(data);
                     $log.log(data)
@@ -100,16 +111,13 @@ app.controller('MainCtrl', function($scope,$log,$http,$timeout) {
                     var alts = [];
                     for (var i = 0; i < (data[0].x.length); i++) {
                 alts.push({x: data[0].x[i], y: data[0].y[i]});
-                hr.push({x: data[0].x[i], y: data[0].hr[i]});
-
-
-            }
+                hr.push({x: data[0].x[i], y: data[0].hr[i]});    }
 
 
             var meme = [
                 {
                     values: alts,      //values - represents the array of {x,y} data points
-                    key: data[0].key[0], //key  - the name of the series.
+                    key: data[0].key[1], //key  - the name of the series.
                     color: '#ff4a52',  //color - optional: choose your own line color.
                     strokeWidth: 2,
                     classed: 'dashed',
@@ -129,6 +137,9 @@ app.controller('MainCtrl', function($scope,$log,$http,$timeout) {
             ];
                     $log.log(meme);
                     $scope.data = meme;
+                    $scope.loading = false;
+                    window.dispatchEvent(new Event('resize'));
+
                     $timeout.cancel(timeout);
                     //do_plot(data);
 
