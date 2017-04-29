@@ -49,6 +49,7 @@ def celery_json_strava(userkey):
     streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
     y = streams['altitude'].data
     x = streams['distance'].data
+    hr = streams['time'].data
     x = np.array(x)
     x = x/1000
     x= np.around(x, decimals=3)
@@ -58,7 +59,7 @@ def celery_json_strava(userkey):
     #for ii, data in enumerate(y):
     #    my_list.append((x[ii], data))
 
-    jmeme = json.dumps([{'key': ['Distance [km]', 'Altitude [m]'], 'x': x, 'y':y}])
+    jmeme = json.dumps([{'key': ['Distance [km]', 'Altitude [m]'], 'x': x, 'y':y,'hr':hr}])
 
     return jmeme
 

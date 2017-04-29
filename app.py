@@ -68,8 +68,8 @@ def progress():
 @APP.route('/start', methods=['POST'])
 def get_counts():
     # get url
-    data = json.loads(request.data.decode())
-    url = data["url"]
+    # data = json.loads(request.data.decode())
+    # url = data["url"]
     job = tasks.celery_json_strava.delay(current_user.access_token)
     # return created job id
     return job.id
@@ -77,6 +77,11 @@ def get_counts():
 @APP.route('/d3_test')
 def d3_test():
     return render_template('d3_test.html')
+
+
+@APP.route('/nvd3')
+def nvd3():
+    return render_template('nvd3_index.html')
 
 @APP.route('/topojson')
 def topojson():
