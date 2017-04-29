@@ -1,6 +1,19 @@
 var app = angular.module('plunker', ['nvd3']);
 
+// TODO check if any parameters have changed if not dont fire new job retrieve old data
+
 app.controller('MainCtrl', function($scope,$log,$http,$timeout) {
+    var now = Date.now();
+    var max = now;
+    max = new Date(max);
+    max.setDate(max.getDate() + 1);
+$scope.example =  {
+         value: new Date(now),
+         min:new Date(now),
+         max:max
+       };
+
+
   $scope.options = {
             chart: {
                 type: 'lineChart',

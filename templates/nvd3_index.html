@@ -13,9 +13,28 @@
     <script src="https://rawgit.com/krispo/angular-nvd3/v1.0.4/dist/angular-nvd3.js"></script>
     <script src="{{ url_for('static', filename='nvd3_app.js') }}"></script>
   </head>
-
+{% raw %}
   <body ng-controller="MainCtrl">
-  <button ng-click="getResults()">Get Results</button>
+ <form name="myForm">
+  <label for="exampleInput">Pick a date in next 64 hours:</label>
+  <input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
+      placeholder="yyyy-MM-ddTHH:mm:ss" min="{{example.min | date: 'yyyy-MM-ddTHH:mm:ss' }}" max="{{example.max | date: 'yyyy-MM-ddTHH:mm:ss' }}" required />
+  <div role="alert">
+    <span class="error" ng-show="myForm.input.$error.required">
+        Required!</span>
+    <span class="error" ng-show="myForm.input.$error.datetimelocal">
+        Not a valid date!</span>
+  </div>
+  <tt>value = {{example.value | date: "yyyy-MM-ddTHH:mm:ss"}}</tt><br/>
+  <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
+
+  <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
+  <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
+  <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
+     <button ng-click="getResults()" ng-disabled="myForm.$invalid">Get Results</button>
+</form>
+
+{% endraw %}
 
 <div ng-if="!loading">
       <nvd3 options="options" data="data"></nvd3>
