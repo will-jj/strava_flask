@@ -135,7 +135,7 @@ app.directive('myMap', function($timeout, $http){
           .attr('d', path);
         scope.loading = false;
       }, function(err){ throw err });
-    }, 2000);
+    },6000); //the delay
   }
   return {
       link: link

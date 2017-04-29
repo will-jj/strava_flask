@@ -23,7 +23,7 @@
         success(function(results) {
           $log.log(results);
           getWordCount(results);
-          $scope.wordcounts = null;
+          $scope.data = null;
           $scope.loading = true;
           $scope.submitButtonText = 'Loading...';
           $scope.urlerror = false;
@@ -51,8 +51,8 @@
              // $scope.b= JSON.parse(data);
 
 
-              $scope.wordcounts = data;
-              $log.log($scope.wordcounts)
+              $scope.data = data;
+              $log.log($scope.data)
               $timeout.cancel(timeout);
               return false;
             }

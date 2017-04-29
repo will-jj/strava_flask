@@ -3,7 +3,7 @@
 import time
 import random
 import datetime
-
+import numpy as np
 from io import BytesIO
 from celery import Celery, current_task
 from celery.result import AsyncResult
@@ -49,11 +49,16 @@ def celery_json_strava(userkey):
     streams = client.get_activity_streams(latest_ride.id, types=types, resolution='medium')
     y = streams['altitude'].data
     x = streams['distance'].data
-    my_list = list()
-    for ii, data in enumerate(y):
-        my_list.append((x[ii],data))
+    x = np.array(x)
+    x = x/1000
+    x= np.around(x, decimals=3)
+    x = x.tolist()
 
-    jmeme = json.dumps([{'key': 'Altitude', 'values': my_list}])
+    #my_list = list()
+    #for ii, data in enumerate(y):
+    #    my_list.append((x[ii], data))
+
+    jmeme = json.dumps([{'key': ['Distance [km]', 'Altitude [m]'], 'x': x, 'y':y}])
 
     return jmeme
 
