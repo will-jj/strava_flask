@@ -13,7 +13,11 @@ $scope.example =  {
          max:max
        };
 
-
+$scope.init=function (a) {
+  $scope.fields =a;
+  $scope.choice = null;
+    $log.log(a);
+};
   $scope.options = {
             chart: {
                 type: 'lineChart',

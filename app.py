@@ -81,7 +81,18 @@ def d3_test():
 
 @APP.route('/nvd3')
 def nvd3():
-    return render_template('nvd3_index.html')
+    client = stravalib.client.Client()
+    client.access_token = current_user.access_token
+    routes = client.get_routes()
+    routes = list(routes)
+    data = list()
+    for ride in routes:
+        meme = {}
+        meme['name'] = ride.name
+        meme['id'] = ride.id
+        data.append(meme)
+    json_data = json.dumps(data)
+    return render_template('nvd3_index.html', courses=json_data)
 
 @APP.route('/topojson')
 def topojson():

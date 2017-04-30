@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="plunker">
+<html ng-app="plunker" >
 
   <head>
     <meta charset="utf-8" />
@@ -13,9 +13,12 @@
     <script src="https://rawgit.com/krispo/angular-nvd3/v1.0.4/dist/angular-nvd3.js"></script>
     <script src="{{ url_for('static', filename='nvd3_app.js') }}"></script>
   </head>
-{% raw %}
-  <body ng-controller="MainCtrl">
+
+  <body ng-controller="MainCtrl"  ng-init="init({{ courses }})">
+
+  {% raw %}
  <form name="myForm">
+   <select ng-options="field.id as field.name for field in fields" ng-model="choice"></select>
   <label for="exampleInput">Pick a date in next 64 hours:</label>
   <input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
       placeholder="yyyy-MM-ddTHH:mm:ss" min="{{example.min | date: 'yyyy-MM-ddTHH:mm:ss' }}" max="{{example.max | date: 'yyyy-MM-ddTHH:mm:ss' }}" required />
