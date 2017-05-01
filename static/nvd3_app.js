@@ -132,12 +132,17 @@ $scope.init=function (a) {
                     var app_temp = [];
                     var rel_wind = [];
                     var wind_speed = [];
+                    var wind_comp = [];
+                    var wind_precip =[];
 
                     for (var i = 0; i < (data[0].dist.length); i++) {
                 rel_wind.push({x: data[0].dist[i], y: data[0].rel_wind[i]});
                 wind_speed.push({x: data[0].dist[i], y: data[0].wind_speed[i]});
 
                 app_temp.push({x: data[0].dist[i], y: data[0].app_temp[i]});
+
+                wind_comp.push({x: data[0].dist[i], y: data[0].wind_comp[i]});
+                wind_precip.push({x: data[0].dist[i], y: data[0].wind_precip[i]});
 
                     }
                     $log.log(rel_wind);
@@ -151,16 +156,28 @@ $scope.init=function (a) {
                     classed: 'dashed',
                     area: true
                 },
-                {
+               /* {
                     values: rel_wind,
                     key: data[0].key[2],
                     color: '#2ca02c',
                     area: true
-                },
+                },*/
                 {
                     values: wind_speed,
                     key: data[0].key[3],
-                    color: '#7777ff',
+                    color: '#4fff08',
+                    area: true      //area - set to true if you want this line to turn into a filled area chart.
+                },
+                                {
+                    values: wind_precip,
+                    key: data[0].key[5],
+                    color: '#ff2527',
+                    area: true      //area - set to true if you want this line to turn into a filled area chart.
+                },
+                                {
+                    values: wind_comp,
+                    key: data[0].key[4],
+                    color: '#0034ff',
                     area: true      //area - set to true if you want this line to turn into a filled area chart.
                 }
             ];
