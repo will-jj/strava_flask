@@ -94,12 +94,14 @@ def celery_json_weather(userkey, course_id, date):
     dist = np.around(dist, decimals=3)
     dist = dist.tolist()
     wind_speed = weather.wind_speed
+    wind_comp = weather.wind_comp
+    wind_precip = weather.precip_intensity
     #my_list = list()
     #for ii, data in enumerate(y):
     #    my_list.append((x[ii], data))
     # TODO prepare data ready to dump straight into graph
-    jmeme = json.dumps([{'key': ['Distance [km]', 'Apparent Temperature [°C]', 'Rel Wind Bearing [°]', 'Wind Speed [km/h]'],
-                         'dist': dist, 'app_temp':app_temp, 'rel_wind':rel_wind, 'wind_speed':wind_speed}])
+    jmeme = json.dumps([{'key': ['Distance [km]', 'Apparent Temperature [°C]', 'Rel Wind Bearing [°]', 'Wind Speed [km/h]', 'Wind Component [km/h]', 'Precipitation'],
+                         'dist': dist, 'app_temp':app_temp, 'rel_wind':rel_wind, 'wind_speed':wind_speed,'wind_comp':wind_comp,'wind_precip':wind_precip}])
     return jmeme
 
 
