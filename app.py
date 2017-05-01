@@ -68,8 +68,10 @@ def progress():
 @APP.route('/start', methods=['POST'])
 def get_counts():
     # get url
-    # data = json.loads(request.data.decode())
-    # url = data["url"]
+    data = json.loads(request.data.decode())
+    course_id = data["course_id"]
+    date = data["date_time"]
+    # raise Exception('Wow {} and {}'.format(date,course_id))
     job = tasks.celery_json_strava.delay(current_user.access_token)
     # return created job id
     return job.id

@@ -22,18 +22,7 @@
   <label for="exampleInput">Pick a date in next 64 hours:</label>
   <input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
       placeholder="yyyy-MM-ddTHH:mm:ss" min="{{example.min | date: 'yyyy-MM-ddTHH:mm:ss' }}" max="{{example.max | date: 'yyyy-MM-ddTHH:mm:ss' }}" required />
-  <div role="alert">
-    <span class="error" ng-show="myForm.input.$error.required">
-        Required!</span>
-    <span class="error" ng-show="myForm.input.$error.datetimelocal">
-        Not a valid date!</span>
-  </div>
-  <tt>value = {{example.value | date: "yyyy-MM-ddTHH:mm:ss"}}</tt><br/>
-  <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
 
-  <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
-  <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
-  <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
      <button ng-click="getResults()" ng-disabled="myForm.$invalid">Get Results</button>
 </form>
 
@@ -43,7 +32,9 @@
       <nvd3 options="options" data="data"></nvd3>
 
 </div>
-<div ng-if="loading" style="background-image:url(/static/spinner.gif);background-repeat:repeat"></div>
+<div ng-if="loading">
+    <img src="{{url_for('static', filename='spinner.gif') }}" alt="spin in">
+</div>
 
   </body>
 

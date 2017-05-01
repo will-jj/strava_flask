@@ -15,6 +15,7 @@ $scope.example =  {
 
 $scope.init=function (a) {
   $scope.fields =a;
+  $scope.loading = true;
   $scope.choice = null;
     $log.log(a);
 };
@@ -90,10 +91,12 @@ $scope.init=function (a) {
       $log.log('test');
 
       // get the URL from the input
-        var userInput = $scope.url;
-      $scope.url = "dont break";
+        var course_id = $scope.choice;
+        var date_time = new Date ($scope.example.value);
+        Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
+        var unix = date_time.getUnixTime();
       // fire the API request
-      $http.post('/start', {'url': userInput}).
+      $http.post('/start', {'course_id': course_id,'date_time':unix}).
         success(function(results) {
           $log.log(results);
           getData(results);
