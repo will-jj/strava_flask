@@ -64,6 +64,31 @@ def celery_json_strava(userkey):
     return jmeme
 
 @CELERY.task()
+def celery_json_weather(userkey, course_id, date):
+    client = stravalib.client.Client()
+    client.access_token = userkey
+    athlete = client.get_athlete()
+    route = client.get_route_streams(course_id)
+
+
+    y = route['altitude'].data
+    x = route['distance'].data
+    hr = route['altitude'].data
+    x = np.array(x)
+    x = x/1000
+    x= np.around(x, decimals=3)
+    x = x.tolist()
+
+    #my_list = list()
+    #for ii, data in enumerate(y):
+    #    my_list.append((x[ii], data))
+
+    jmeme = json.dumps([{'key': ['Distance [km]', 'Altitude [m]'], 'x': x, 'y':y,'hr':hr}])
+
+    return jmeme
+
+
+@CELERY.task()
 def simple(userkey):
     current_task.update_state(state='PROGRESS', meta={'current':0.1})
     current_task.update_state(state='PROGRESS', meta={'current':0.3})

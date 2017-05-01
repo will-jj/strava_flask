@@ -66,13 +66,13 @@ def progress():
 
 
 @APP.route('/start', methods=['POST'])
-def get_counts():
+def get_weather():
     # get url
     data = json.loads(request.data.decode())
     course_id = data["course_id"]
     date = data["date_time"]
     # raise Exception('Wow {} and {}'.format(date,course_id))
-    job = tasks.celery_json_strava.delay(current_user.access_token)
+    job = tasks.celery_json_weather.delay(current_user.access_token, course_id, date)
     # return created job id
     return job.id
 
