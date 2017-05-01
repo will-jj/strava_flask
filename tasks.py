@@ -12,6 +12,14 @@ from matplotlib.figure import Figure
 from matplotlib.dates import DateFormatter
 import stravalib
 import json
+from python_weather import tcxweather
+
+import configparser
+
+Config = configparser.ConfigParser()
+Config.read('config.ini')
+ds_api = Config['Authentication']['client_secret']
+
 REDIS_URL = 'redis://redis:6379/0'
 BROKER_URL = 'amqp://admin:mypass@rabbit//'
 
@@ -69,22 +77,29 @@ def celery_json_weather(userkey, course_id, date):
     client.access_token = userkey
     athlete = client.get_athlete()
     route = client.get_route_streams(course_id)
-
-
-    y = route['altitude'].data
-    x = route['distance'].data
-    hr = route['altitude'].data
-    x = np.array(x)
-    x = x/1000
-    x= np.around(x, decimals=3)
-    x = x.tolist()
-
+    weather = tcxweather.RideWeather(strava_course=route)
+    weather.speed(kph=25)
+    weather.set_ride_start_time(unix=date)
+    weather.decimate(Points=10)
+    weather.get_weather_data(ds_api, fileDirectory='weatherWEB_TEST', fileName='weatherWebTest', units='si')
+    weather.get_forecast()
+    dist = weather.dist
+    #y = route['altitude'].data
+    #x = route['distance'].data
+    #hr = route['altitude'].data
+    app_temp = weather.apparent_temperature
+    rel_wind = weather.rel_wind_bear
+    dist = np.array(dist)
+    dist = dist/1000
+    dist = np.around(dist, decimals=3)
+    dist = dist.tolist()
+    wind_speed = weather.wind_speed
     #my_list = list()
     #for ii, data in enumerate(y):
     #    my_list.append((x[ii], data))
-
-    jmeme = json.dumps([{'key': ['Distance [km]', 'Altitude [m]'], 'x': x, 'y':y,'hr':hr}])
-
+    # TODO prepare data ready to dump straight into graph
+    jmeme = json.dumps([{'key': ['Distance [km]', 'Apparent Temperature [°C]', 'Rel Wind Bearing [°]', 'Wind Speed [km/h]'],
+                         'dist': dist, 'app_temp':app_temp, 'rel_wind':rel_wind, 'wind_speed':wind_speed}])
     return jmeme
 
 

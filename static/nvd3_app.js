@@ -54,18 +54,18 @@ $scope.init=function (a) {
             },
             title: {
                 enable: true,
-                text: 'Title for Line Chart'
+                text: 'Weather for Ride'
             },
             subtitle: {
-                enable: true,
-                text: 'Subtitle for simple line chart. Lorem ipsum dolor sit amet, at eam blandit sadipscing, vim adhuc sanctus disputando ex, cu usu affert alienum urbanitas.',
+                enable: false,
+                text: 's',
                 css: {
                     'text-align': 'center',
                     'margin': '10px 13px 0px 7px'
                 }
             },
             caption: {
-                enable: true,
+                enable: false,
                 html: '<b>Figure 1.</b> Lorem ipsum dolor sit amet, at eam blandit sadipscing, <span style="text-decoration: underline;">vim adhuc sanctus disputando ex</span>, cu usu affert alienum urbanitas. <i>Cum in purto erat, mea ne nominavi persecuti reformidans.</i> Docendi blandit abhorreant ea has, minim tantas alterum pro eu. <span style="color: darkred;">Exerci graeci ad vix, elit tacimates ea duo</span>. Id mel eruditi fuisset. Stet vidit patrioque in pro, eum ex veri verterem abhorreant, id unum oportere intellegam nec<sup>[1, <a href="https://github.com/krispo/angular-nvd3" target="_blank">2</a>, 3]</sup>.',
                 css: {
                     'text-align': 'justify',
@@ -127,16 +127,24 @@ $scope.init=function (a) {
                     // $scope.b= JSON.parse(data);
                     $log.log(data)
                     //var testdata = d3.zip(data[0].x,data[0].y);
-                    var hr=[];
-                    var alts = [];
-                    for (var i = 0; i < (data[0].x.length); i++) {
-                alts.push({x: data[0].x[i], y: data[0].y[i]});
-                hr.push({x: data[0].x[i], y: data[0].hr[i]});    }
 
+                    //var dist=[];
+                    var app_temp = [];
+                    var rel_wind = [];
+                    var wind_speed = [];
+
+                    for (var i = 0; i < (data[0].dist.length); i++) {
+                rel_wind.push({x: data[0].dist[i], y: data[0].rel_wind[i]});
+                wind_speed.push({x: data[0].dist[i], y: data[0].wind_speed[i]});
+
+                app_temp.push({x: data[0].dist[i], y: data[0].app_temp[i]});
+
+                    }
+                    $log.log(rel_wind);
 
             var meme = [
                 {
-                    values: alts,      //values - represents the array of {x,y} data points
+                    values: app_temp,      //values - represents the array of {x,y} data points
                     key: data[0].key[1], //key  - the name of the series.
                     color: '#ff4a52',  //color - optional: choose your own line color.
                     strokeWidth: 2,
@@ -144,16 +152,17 @@ $scope.init=function (a) {
                     area: true
                 },
                 {
-                    values: hr,
-                    key: 'Time Wave',
-                    color: '#2ca02c'
-                }/*,
+                    values: rel_wind,
+                    key: data[0].key[2],
+                    color: '#2ca02c',
+                    area: true
+                },
                 {
-                    values: sin2,
-                    key: 'Another sine wave',
+                    values: wind_speed,
+                    key: data[0].key[3],
                     color: '#7777ff',
                     area: true      //area - set to true if you want this line to turn into a filled area chart.
-                }*/
+                }
             ];
                     $log.log(meme);
                     $scope.data = meme;

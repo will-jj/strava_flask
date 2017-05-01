@@ -20,10 +20,12 @@
  <form name="myForm">
    <select ng-options="field.id as field.name for field in fields" ng-model="choice"></select>
   <label for="exampleInput">Pick a date in next 64 hours:</label>
-  <input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
+  <div><input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
       placeholder="yyyy-MM-ddTHH:mm:ss" min="{{example.min | date: 'yyyy-MM-ddTHH:mm:ss' }}" max="{{example.max | date: 'yyyy-MM-ddTHH:mm:ss' }}" required />
-
+</div>
+     <div>
      <button ng-click="getResults()" ng-disabled="myForm.$invalid">Get Results</button>
+     </div>
 </form>
 
 {% endraw %}
