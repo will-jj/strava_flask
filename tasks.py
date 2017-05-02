@@ -73,16 +73,21 @@ def celery_json_strava(userkey):
 
 @CELERY.task()
 def celery_json_weather(userkey, course_id, date):
+    current_task.update_state(state='PROGRESS', meta={'current': 0.1})
     client = stravalib.client.Client()
     client.access_token = userkey
     athlete = client.get_athlete()
     route = client.get_route_streams(course_id)
+    current_task.update_state(state='PROGRESS', meta={'current': 0.2})
     weather = tcxweather.RideWeather(strava_course=route)
     weather.speed(kph=25)
     weather.set_ride_start_time(unix=date)
     weather.decimate(Points=10)
+    current_task.update_state(state='PROGRESS', meta={'current': 0.3})
     weather.get_weather_data(ds_api, fileDirectory='weatherWEB_TEST', fileName='weatherWebTest', units='si')
+    current_task.update_state(state='PROGRESS', meta={'current': 0.4})
     weather.get_forecast()
+    current_task.update_state(state='PROGRESS', meta={'current': 0.5})
     dist = weather.dist
     #y = route['altitude'].data
     #x = route['distance'].data

@@ -126,6 +126,7 @@ $scope.init=function (a) {
             $http.get('/results?jobid=' + jobID).success(function (data, status, headers, config) {
                 if (status === 202) {
                     $log.log(data, status);
+                    $scope.progress =data;
                 } else if (status === 200) {
                     //$log.log(data);
 

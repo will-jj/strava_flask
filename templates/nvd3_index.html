@@ -44,6 +44,7 @@
 </div>
 <div ng-if="loading">
     <img src="{{url_for('static', filename='spinner.gif') }}" alt="spin in">
+    {% raw %}<h1>{{ progress }}</h1>{% endraw %}
 </div>
 
   </body>

@@ -123,13 +123,28 @@ def get_desired_data():
 
 @APP.route('/results')
 def get_results():
+    messages = {
+        0.1:'Job Started',
+        0.2:'Course Stream Acquired',
+        0.3:'Gathering Weather Data',
+        0.4:'Processing Weather Data',
+        0.5:'Packing the Data'}
+
     jobid = request.args.get('jobid')
     if current_user.is_authenticated:
         if jobid:
             job = tasks.get_job(jobid)
-            output = job.get()
+            # raise Exception('{}'.format(job.state))
+            if job.state == 'SUCCESS':
+                output = job.get()
 
-            return (output)
+                return (output)
+            elif job.state == 'PROGRESS':
+                return messages[job.result['current']], 202
+            elif job.state == 'PENDING':
+                return "Pending", 202
+            else:
+                return "unknown", 202
         else:
             return "No", 202
     else:
