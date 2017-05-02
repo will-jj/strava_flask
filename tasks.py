@@ -87,22 +87,25 @@ def celery_json_weather(userkey, course_id, date):
     #y = route['altitude'].data
     #x = route['distance'].data
     #hr = route['altitude'].data
-    app_temp = weather.apparent_temperature
-    rel_wind = weather.rel_wind_bear
+    app_temp = weather.weather['apparent_temperature']
+    rel_wind = weather.weather['rel_wind_bear']
     dist = np.array(dist)
     dist = dist/1000
     dist = np.around(dist, decimals=3)
     dist = dist.tolist()
-    wind_speed = weather.wind_speed
-    wind_comp = weather.wind_comp
-    wind_precip = weather.precip_intensity
-    wind_cross = weather.wind_cross
+    wind_speed = weather.weather['wind_speed']
+    wind_head = weather.weather['wind_head']
+    wind_precip = weather.weather['precip_intensity']
+    wind_cross = weather.weather['wind_cross']
     #my_list = list()
     #for ii, data in enumerate(y):
     #    my_list.append((x[ii], data))
     # TODO prepare data ready to dump straight into graph
-    jmeme = json.dumps([{'key': ['Distance [km]', 'Apparent Temperature [°C]', 'Rel Wind Bearing [°]', 'Wind Speed [km/h]', 'Head Wind Component [km/h]', 'Cross Wind Component [km/h]', 'Precipitation'],
-                         'dist': dist, 'app_temp':app_temp, 'rel_wind':rel_wind, 'wind_speed':wind_speed,'wind_comp':wind_comp,'wind_cross':wind_cross,'wind_precip':wind_precip}])
+    jmeme = json.dumps([{'key': ['Distance [km]', 'Apparent Temperature [°C]', 'Rel Wind Bearing [°]',
+                                 'Wind Speed [km/h]', 'Head Wind Component [km/h]', 'Cross Wind Component [km/h]',
+                                 'Precipitation'],
+                         'dist': dist, 'app_temp':app_temp, 'rel_wind':rel_wind, 'wind_speed':wind_speed,
+                         'wind_head':wind_head, 'wind_cross':wind_cross, 'wind_precip':wind_precip}])
     return jmeme
 
 
