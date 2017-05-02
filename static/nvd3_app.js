@@ -134,6 +134,7 @@ $scope.init=function (a) {
                     var wind_speed = [];
                     var wind_comp = [];
                     var wind_precip =[];
+                    var wind_cross = [];
 
                     for (var i = 0; i < (data[0].dist.length); i++) {
                 rel_wind.push({x: data[0].dist[i], y: data[0].rel_wind[i]});
@@ -143,7 +144,7 @@ $scope.init=function (a) {
 
                 wind_comp.push({x: data[0].dist[i], y: data[0].wind_comp[i]});
                 wind_precip.push({x: data[0].dist[i], y: data[0].wind_precip[i]});
-
+                wind_cross.push({x: data[0].dist[i], y: data[0].wind_cross[i]});
                     }
                     $log.log(rel_wind);
 
@@ -168,8 +169,9 @@ $scope.init=function (a) {
                     color: '#4fff08',
                     area: true      //area - set to true if you want this line to turn into a filled area chart.
                 },
-                                {
-                    values: wind_precip,
+
+                                             {
+                    values: wind_cross,
                     key: data[0].key[5],
                     color: '#ff2527',
                     area: true      //area - set to true if you want this line to turn into a filled area chart.
@@ -178,6 +180,12 @@ $scope.init=function (a) {
                     values: wind_comp,
                     key: data[0].key[4],
                     color: '#0034ff',
+                    area: true      //area - set to true if you want this line to turn into a filled area chart.
+                },
+                                                {
+                    values: wind_precip,
+                    key: data[0].key[6],
+                    color: '#0cffbe',
                     area: true      //area - set to true if you want this line to turn into a filled area chart.
                 }
             ];
