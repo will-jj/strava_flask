@@ -199,6 +199,8 @@ $scope.init=function (a) {
                     $log.log(meme);
                     $scope.data = meme;
                     $scope.loading = false;
+                    $scope.done_graph = true;
+
                     window.dispatchEvent(new Event('resize'));
 
                     $timeout.cancel(timeout);
@@ -260,7 +262,6 @@ $scope.init=function (a) {
 
 
             $log.log(meme);
-            $scope.done_graph = true;
             return meme;
 
         }
