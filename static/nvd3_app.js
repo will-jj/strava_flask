@@ -3,19 +3,26 @@ var app = angular.module('plunker', ['nvd3']);
 // TODO check if any parameters have changed if not dont fire new job retrieve old data
 
 app.controller('MainCtrl', function($scope,$log,$http,$timeout) {
-    var now = Date.now();
-    var max = now;
-    max = new Date(max);
-    max.setDate(max.getDate() + 1);
-$scope.example =  {
-         value: new Date(now),
-         min:new Date(now),
-         max:max
-       };
+    var now = new Date(Date.now());
+    Date.prototype.addDays = function(days) {
+  var dat = new Date(this.valueOf());
+  dat.setDate(dat.getDate() + days);
+  return dat;
+};
+    max = now.addDays(2);
+    max.setSeconds(0,0);
+    now = now.setSeconds(0,0);
+
+    $scope.example =  {
+             value: new Date(now),
+             min: new Date(now),
+             max:new Date(max)
+           };
 
 $scope.init=function (a) {
   $scope.fields =a;
-  $scope.loading = true;
+  $scope.loading = false;
+  $scope.done_graph = false;
   $scope.choice = null;
     $log.log(a);
 };
@@ -229,6 +236,7 @@ $scope.init=function (a) {
             }
 
             //Line chart data should be sent as an array of series objects.
+
             var meme = [
                 {
                     values: sin,      //values - represents the array of {x,y} data points
@@ -252,6 +260,8 @@ $scope.init=function (a) {
 
 
             $log.log(meme);
+            $scope.done_graph = true;
             return meme;
+
         }
 });
