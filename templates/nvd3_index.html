@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.css"/>
       <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.9/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.js"></script>
@@ -48,6 +50,13 @@
 {% raw %}
     <div class="w3-section w3-light-grey">
   <div class="w3-container w3-padding-large w3-red w3-center" style="width:{{ prog_num }}%">{{ progress }}</div>
+</div>
+
+
+<div class="progress">
+    <div class="progress-bar progress-bar-custom" role="progressbar" aria-valuenow="{{ prog_num }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ prog_num }}%;">
+        <span class="my_span">{{ progress }}</span>
+    </div>
 </div>
 {% endraw %}
   <!--  <img src="{{url_for('static', filename='spinner.gif') }}" alt="spin in">

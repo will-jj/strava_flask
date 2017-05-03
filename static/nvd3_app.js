@@ -30,6 +30,7 @@ $scope.init=function (a) {
 };
   $scope.options = {
             chart: {
+
                 type: 'lineChart',
                 height: 450,
                 margin : {
@@ -47,6 +48,7 @@ $scope.init=function (a) {
                     tooltipShow: function(e){ console.log("tooltipShow"); },
                     tooltipHide: function(e){ console.log("tooltipHide"); }
                 },
+                interpolate: "monotone",
                 xAxis: {
                     axisLabel: 'Distance (km)'
                 },
