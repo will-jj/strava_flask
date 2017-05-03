@@ -24,6 +24,8 @@ $scope.init=function (a) {
   $scope.loading = false;
   $scope.done_graph = false;
   $scope.choice = null;
+  $scope.prog_num = 0;
+
     $log.log(a);
 };
   $scope.options = {
@@ -118,7 +120,7 @@ $scope.init=function (a) {
 
     };
     function getData(jobID) {
-
+        var to_add = 0;
         var timeout = '';
 
         var poller = function () {
@@ -126,11 +128,22 @@ $scope.init=function (a) {
             $http.get('/results?jobid=' + jobID).success(function (data, status, headers, config) {
                 if (status === 202) {
                     $log.log(data, status);
-                    $scope.progress =data;
+                    $scope.progress =data.message;
+                    num = data.progress;
+
+                    $scope.prog_num = (num*100);
+                    $scope.prog_num = $scope.prog_num + to_add;
+                    if (num === 0.3 && $scope.prog_num < 80){
+
+                        to_add = to_add + 5;
+                    }
+
+                    $log.log($scope.prog_num)
                 } else if (status === 200) {
                     //$log.log(data);
 
-
+                    $scope.prog_num = 0;
+                    $scope.progress = '';
                     $scope.submitButtonText = "Submit";
                     // $scope.b= JSON.parse(data);
                     $log.log(data)
@@ -212,7 +225,7 @@ $scope.init=function (a) {
                 }
                 // continue to call the poller() function every 2 seconds
                 // until the timeout is cancelled
-                timeout = $timeout(poller, 2000);
+                timeout = $timeout(poller, 500);
             }).error(function (error) {
                 $log.log(error);
                 $scope.loading = false;

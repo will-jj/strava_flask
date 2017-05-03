@@ -140,11 +140,16 @@ def get_results():
 
                 return (output)
             elif job.state == 'PROGRESS':
-                return messages[job.result['current']], 202
+                prog = job.result['current']
+                message = messages[prog]
+                dump = json.dumps(dict(
+                    message=message,
+                    progress=prog))
+                return dump, 202
             elif job.state == 'PENDING':
-                return "Pending", 202
+                return "Pending", 203
             else:
-                return "unknown", 202
+                return "unknown", 203
         else:
             return "No", 202
     else:

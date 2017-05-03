@@ -85,9 +85,9 @@ def celery_json_weather(userkey, course_id, date):
     weather.decimate(Points=10)
     current_task.update_state(state='PROGRESS', meta={'current': 0.3})
     weather.get_weather_data(ds_api, fileDirectory='weatherWEB_TEST', fileName='weatherWebTest', units='si')
-    current_task.update_state(state='PROGRESS', meta={'current': 0.4})
+    current_task.update_state(state='PROGRESS', meta={'current': 0.8})
     weather.get_forecast()
-    current_task.update_state(state='PROGRESS', meta={'current': 0.5})
+    current_task.update_state(state='PROGRESS', meta={'current': 0.9})
     dist = weather.dist
     #y = route['altitude'].data
     #x = route['distance'].data
