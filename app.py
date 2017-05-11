@@ -3,17 +3,26 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, \
     current_user
 from oauth import OAuthSignIn
-import pickle
+
 
 import tasks
 import numpy as np
 import stravalib
 import json
 
+import configparser
+
+Config = configparser.ConfigParser()
+Config.read('config.ini')
+
 APP = Flask(__name__)
 APP.config['SECRET_KEY'] = 'top secret!'
 APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-APP.config['OAUTH_CREDENTIALS'] = pickle.load(open('credentials.p', 'rb'))
+
+Config = configparser.ConfigParser()
+Config.read('config.ini')
+
+APP.config['OAUTH_CREDENTIALS'] = Config
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 APP.altitude_plot = None
@@ -147,9 +156,9 @@ def get_results():
                     progress=prog))
                 return dump, 202
             elif job.state == 'PENDING':
-                return "Pending", 203
+                return "Pending", 201
             else:
-                return "unknown", 203
+                return "unknown", 250
         else:
             return "No", 202
     else:

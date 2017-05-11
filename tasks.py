@@ -18,7 +18,7 @@ import configparser
 
 Config = configparser.ConfigParser()
 Config.read('config.ini')
-ds_api = Config['Authentication']['client_secret']
+ds_api = Config['darksky']['client_secret']
 
 REDIS_URL = 'redis://redis:6379/0'
 BROKER_URL = 'amqp://admin:mypass@rabbit//'
