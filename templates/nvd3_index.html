@@ -1,75 +1,66 @@
 <!DOCTYPE html>
-<html ng-app="plunker" >
+<html ng-app="strava_weather" >
 
-  <head>
-    <meta charset="utf-8" />
-    <title>Angular-nvD3 Line Chart</title>
-    <script>document.write('<base href="' + document.location + '" />');</script>
-   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.css"/>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <head>
+        <meta charset="utf-8" />
+        <title>Strava Weather Chart</title>
+        <script>document.write('<base href="' + document.location + '" />');</script>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.css"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.9/angular.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.js"></script>
+        <script src="https://rawgit.com/krispo/angular-nvd3/v1.0.4/dist/angular-nvd3.js"></script>
+        <script src="{{ url_for('static', filename='nvd3_app.js') }}"></script>
+    </head>
 
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.9/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.js"></script>
-    <script src="https://rawgit.com/krispo/angular-nvd3/v1.0.4/dist/angular-nvd3.js"></script>
-    <script src="{{ url_for('static', filename='nvd3_app.js') }}"></script>
-  </head>
+    <body ng-controller="MainCtrl"  ng-init="init({{ courses }})">
 
-  <body ng-controller="MainCtrl"  ng-init="init({{ courses }})">
+    {% raw %}
+    <form name="myForm">
+        <label for="course_id">Select a Strava Course</label>
+        <div> <select ng-options="field.id as field.name for field in fields" id="course-id" ng-model="choice"></select></div>
+        <label for="exampleInput">Pick a date in next 48 hours:</label>
 
-  {% raw %}
- <form name="myForm">
-     <div> <select ng-options="field.id as field.name for field in fields" ng-model="choice"></select></div>
-  <label for="exampleInput">Pick a date in next 48 hours:</label>
+        <div class="date_time_pick">
+            <input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
+            placeholder="yyyy-MM-ddTHH:mm:ss" min="{{example.min | date: 'yyyy-MM-ddTHH:mm:ss' }}" max="{{example.max | date: 'yyyy-MM-ddTHH:mm:ss' }}" required />
+            <div role="alert">
+                <span class="error" ng-show="myForm.input.$error.required">
+                Required!</span>
+                <span class="error" ng-show="myForm.input.$error.datetimelocal">
+                Not a valid date!</span>
+            </div>
+        </div>
+        <div class="btn_getweath">
+            <button ng-click="getResults()" ng-disabled="myForm.$invalid || loading || !choice">Get Results</button>
+        </div>
+    </form>
 
-  <div><input type="datetime-local" id="exampleInput" name="input" ng-model="example.value"
+    {% endraw %}
 
-     placeholder="yyyy-MM-ddTHH:mm:ss" min="{{example.min | date: 'yyyy-MM-ddTHH:mm:ss' }}" max="{{example.max | date: 'yyyy-MM-ddTHH:mm:ss' }}" required />
-  <div role="alert">
-    <span class="error" ng-show="myForm.input.$error.required">
-        Required!</span>
-    <span class="error" ng-show="myForm.input.$error.datetimelocal">
-        Not a valid date!</span>
-  </div>
-  </div>
-     <div>
-     <button ng-click="getResults()" ng-disabled="myForm.$invalid || loading || !choice">Get Results</button>
-     </div>
-</form>
-
-{% endraw %}
-
-<div ng-if="!loading && done_graph">
-      <nvd3 options="options" data="data"></nvd3>
-
-</div>
-<div ng-if="loading">
-{% raw %}
-    <div class="w3-section w3-light-grey">
-  <div class="w3-container w3-padding-large w3-red w3-center" style="width:{{ prog_num }}%">{{ progress }}</div>
-</div>
-
-
-<div class="progress">
-    <div class="progress-bar progress-bar-custom" role="progressbar" aria-valuenow="{{ prog_num }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ prog_num }}%;">
-        <span class="my_span">{{ progress }}</span>
+    <div ng-if="!loading && done_graph">
+        <nvd3 options="options" data="data"></nvd3>
     </div>
-</div>
-{% endraw %}
-  <!--  <img src="{{url_for('static', filename='spinner.gif') }}" alt="spin in">
-    {% raw %}<h1>{{ progress }}</h1>{% endraw %} </!-->
-</div>
 
-  </body>
+    <div ng-if="loading">
+        {% raw %}
+        <div class="progress">
+            <div class="progress-bar progress-bar-custom" role="progressbar" aria-valuenow="{{ prog_num }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ prog_num }}%;">
+            <span class="progress_span">{{ progress }}</span>
+            </div>
+        </div>
+        {% endraw %}
+    </div>
 
-<footer>
-<p><a href="https://darksky.net/poweredby/">Powered by DarkSky</a></p>
-    <img src="{{url_for('static', filename='api_logo_pwrdBy_strava_horiz_light.png') }}" alt="PoweredBy">
+    </body>
 
-</footer>
+    <footer>
+       <div><a href="https://darksky.net/poweredby/"><img style="width:5cm;" src="{{url_for('static', filename='poweredby-oneline.png') }}" alt="darksky"></a></div>
+       <div> <img style="width:5cm;" src="{{url_for('static', filename='api_logo_pwrdBy_strava_horiz_light.png') }}" alt="PoweredBy"></div>
+    </footer>
 
 </html>
 

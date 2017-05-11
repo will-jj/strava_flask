@@ -5,20 +5,27 @@ label, table {
 input {
   max-width: 400px;
 }
-
+.date_time_pick{
+    padding-top: 0.1cm;
+    padding-bottom: 0.2cm;
+}
+.btn_getweath{
+    padding-bottom:0.2cm;
+    padding-top:0.2cm;
+}
 .progress {background: rgba(245, 245, 245, 1); border: 0px solid rgba(245, 245, 245, 1); border-radius: 4px; height: 40px;position:relative;}
 .progress-bar-custom {background: rgba(66, 139, 202, 1); background: -webkit-linear-gradient(top, rgba(39, 105, 163, 1) 0%, rgba(66, 139, 202, 1) 100%); background: linear-gradient(to bottom, rgba(39, 105, 163, 1) 0%, rgba(66, 139, 202, 1) 100%)}
-.my_span {
+.progress_span {
     position:absolute;
     left:0;
     font-size: 200%;
     width:100%;
-    line-height: 60px;
+    line-height: 1.5cm;
     text-align:center;
     z-index:2;
     color:black;
 }
-.progress {height: 80px !important;}
+.progress {height: 1.5cm !important;}
 .number {
   font-weight: bold;
 }

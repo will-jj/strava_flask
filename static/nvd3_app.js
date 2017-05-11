@@ -1,4 +1,4 @@
-var app = angular.module('plunker', ['nvd3']);
+var app = angular.module('strava_weather', ['nvd3']);
 
 // TODO check if any parameters have changed if not dont fire new job retrieve old data
 
