@@ -1,23 +1,18 @@
 <html>
     <head>
-        <title>OAuth Flask Demo</title>
+        <title>Strava Weather</title>
     </head>
     <body>
-        <h1>OAuth Demo</h1>
+        <h1>Strava Weather</h1>
         {% for message in get_flashed_messages() %}
             <p><b>Error</b>: {{ message }}</p>
         {% endfor %}
         {% if current_user.is_authenticated %}
-            <h1><a href="{{ url_for('inr_ring') }}">Async Test</a></h1>
-            <h1><a href="{{ url_for('get_desired_data') }}">Input Page</a></h1>
-
-            <h1><a href="{{ url_for('d3_test')}}">D3 Plot Test</a></h1>
+            <h1><a href="{{ url_for('nvd3_index') }}">Plot Weather For Strava Course</a></h1>
             <p><a href="{{ url_for('logout') }}">Logout</a></p>
         {% else %}
-            <h2>I don't know you!</h2>
-
+            <h2>Login Pls</h2>
              <a href="{{ url_for('oauth_authorize',provider='strava') }}"><img src="{{url_for('static', filename='sign-in.png') }}" alt="sign in"></a>
-
         {% endif %}
     </body>
 </html>
