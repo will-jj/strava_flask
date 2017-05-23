@@ -1,0 +1,10 @@
+[darksky]
+client_secret = notforyou
+
+
+[strava]
+id = nopls
+secret = plsdontstealmykeys
+
+
+
