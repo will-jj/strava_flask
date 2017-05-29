@@ -136,8 +136,8 @@ def get_results():
         0.1:'Job Started',
         0.2:'Course Stream Acquired',
         0.3:'Gathering Weather Data',
-        0.4:'Processing Weather Data',
-        0.5:'Packing the Data'}
+        0.8:'Processing Weather Data',
+        0.9:'Packing the Data'}
 
     jobid = request.args.get('jobid')
     if current_user.is_authenticated:
