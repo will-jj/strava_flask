@@ -156,7 +156,10 @@ def get_results():
                     progress=prog))
                 return dump, 202
             elif job.state == 'PENDING':
-                return "Pending", 201
+                dump = json.dumps(dict(
+                    message='Job Pending',
+                    progress=0))
+                return dump, 202
             else:
                 return "unknown", 250
         else:
