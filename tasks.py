@@ -99,9 +99,9 @@ def celery_json_weather(userkey, course_id, date):
     dist = np.around(dist, decimals=3)
     dist = dist.tolist()
     wind_speed = (np.array(weather.weather['wind_speed'])*3.6).tolist()
-    wind_head = (np.array(weather.weather['wind_head']*3.6).tolist()
+    wind_head = (np.array(weather.weather['wind_head'])*3.6).tolist()
     wind_precip = weather.weather['precip_intensity']
-    wind_cross = (np.array(weather.weather['wind_cross']*3.6).tolist()
+    wind_cross = (np.array(weather.weather['wind_cross'])*3.6).tolist()
     #my_list = list()
     #for ii, data in enumerate(y):
     #    my_list.append((x[ii], data))
